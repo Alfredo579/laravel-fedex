@@ -14,5 +14,8 @@
       "email": "alfredomeschis@yahoo.com"
     }
   ],
-  "require": {}
+  "require": {
+    "symfony/var-dumper": "^5.3",
+    "nesbot/carbon": "2.50"
+  }
 }

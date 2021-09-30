@@ -14,12 +14,13 @@ use GuzzleHttp\Exception\ClientException;
 
 class Ups implements CourrierManagementInterface
 {
-
     private $userName;
     private $password;
     private $accessLicenseNumber;
+    private $accountNumber;
     private $locale;
     private $shipperNumber;
+    private $imageType;
     private $chargeCodes = [
         "100" => "ADDITIONAL HANDLING",
         "110" => "COD",
@@ -87,13 +88,112 @@ class Ups implements CourrierManagementInterface
         "520" => "OVERSIZE PALLET",
     ];
 
+    public $upsServiceCodes = [
+        '01' => 'Next Day Air',
+        '02' => '2nd Day Air',
+        '03' => 'Ground',
+        '07' => 'Express',
+        '08' => 'Expedited',
+        '11' => 'UPS Standard',
+        '12' => '3 Day Select',
+        '13' => 'Next Day Air Saver',
+        '14' => 'UPS Next Day Air® Early',
+        '17' => 'UPS Worldwide Economy DDU',
+        '54' => 'Express Plus',
+        '59' => '2nd Day Air A.M.',
+        '65' => 'UPS Saver',
+        'M2' => 'First Class Mail',
+        'M3' => 'Priority Mail',
+        'M4' => 'Expedited MaiI Innovations',
+        'M5' => 'Priority Mail Innovations',
+        'M6' => 'Economy Mail Innovations',
+        'M7' => 'MaiI Innovations (MI) Returns',
+        '70' => 'UPS Access PointTM Economy',
+        '71' => 'UPS Worldwide Express Freight Midday',
+        '72' => 'UPS Worldwide Economy',
+        '74' => 'UPS Express®12:00',
+        '82' => 'UPS Today Standard',
+        '83' => 'UPS Today Dedicated Courier',
+        '84' => 'UPS Today Intercity',
+        '85' => 'UPS Today Express',
+        '86' => 'UPS Today Express Saver',
+        '96' => 'UPS Worldwide Express Freight.'
+    ];
+
+    public $serviceTypes = [
+        '01' => 'Next Day Air',
+        '02' => '2nd Day Air',
+        '03' => 'Ground',
+        '07' => 'Express',
+        '08' => 'Expedited',
+        '11' => 'UPS Standard',
+        '12' => '3 Day Select',
+        '13' => 'Next Day Air Saver',
+        '14' => 'UPS Next Day Air® Early',
+        '17' => 'UPS Worldwide Economy DDU',
+        '54' => 'Express Plus',
+        '59' => '2nd Day Air A.M.',
+        '65' => 'UPS Saver',
+        'M2' => 'First Class Mail',
+        'M3' => 'Priority Mail',
+        'M4' => 'Expedited MaiI Innovations',
+        'M5' => 'Priority Mail Innovations',
+        'M6' => 'Economy Mail Innovations',
+        'M7' => 'MaiI Innovations (MI) Returns',
+        '70' => 'UPS Access PointTM Economy',
+        '71' => 'UPS Worldwide Express Freight Midday',
+        '72' => 'UPS Worldwide Economy',
+        '74' => 'UPS Express®12:00',
+        '82' => 'UPS Today Standard',
+        '83' => 'UPS Today Dedicated Courier',
+        '84' => 'UPS Today Intercity',
+        '85' => 'UPS Today Express',
+        '86' => 'UPS Today Express Saver',
+        '96' => 'UPS Worldwide Express Freight.'
+    ];
+
+    public $packagingCodes = [
+        "00" => "Unknown",
+        "01" => "UPS Letter",
+        "02" => "Customer Supplied Package",
+        "03" => "Tube",
+        "04" => "PAK",
+        "21" => "UPS Express Box",
+        "24" => "UPS 25KG Box",
+        "25" => "UPS 10KG Box",
+        "30" => "Pallet",
+        "2a" => "Small Express Box",
+        "2b" => "Medium Express Box",
+        "2c" => "Large Express Box",
+        "56" => "Flats",
+        "57" => "Parcels",
+        "58" => "BPM",
+        "59" => "First Class",
+        "60" => "Priority",
+        "61" => "Machineables",
+        "62" => "Irregulars",
+        "63" => "Parcel Post",
+        "64" => "BPM Parcel",
+        "65" => "Media Mail",
+        "66" => "BPM Flat",
+        "67" => "Standard Flat",
+    ];
+
     public function __construct(array $config)
     {
         $this->userName = $config['userName'];
         $this->password = $config['password'];
         $this->accessLicenseNumber = $config['accessLicenseNumber'];
+        $this->accountNumber = $config['accountNumber'];
         $this->locale = $config['locale'];
         $this->shipperNumber = $config['shipperNumber'];
+        $this->imageType = $config['imageType'];
+    }
+
+    public function getServicesTypes()
+    {
+
+        return ["serviceType" => $this->serviceTypes];
     }
 
     public function addressValidation()
@@ -151,6 +251,38 @@ class Ups implements CourrierManagementInterface
 
         $url = 'https://wwwcie.ups.com/ship/v1801/rating/Rate';
 
+        $totalWeight = 0;
+
+        foreach ($rateRequest->packages as $package) {
+
+            $totalWeight += $package['weight'];
+
+            $packQuery[] =  [
+                "PackagingType" => [
+                    "Code" => "00",
+                    "Description" => "Package"
+                ],
+                "Dimensions" => [
+                    "UnitOfMeasurement" => [
+                        "Code" => "CM",
+                    ],
+                    "Length" =>  $package['length'],
+                    "Width" =>  $package['width'],
+                    "Height" =>  $package['height']
+                ],
+                /* "Description" => $package['upsPackageDescription'], */
+                "Packaging" => [
+                    "Code" => /* $package['upsPackagingCode'] */ '00'
+                ],
+                "PackageWeight" => [
+                    "UnitOfMeasurement" => [
+                        "Code" => 'KGS'
+                    ],
+                    "Weight" => $package['weight']
+                ],
+            ];
+        }
+
         try {
 
             $client = new Client();
@@ -194,7 +326,7 @@ class Ups implements CourrierManagementInterface
                                         "CountryCode" => $rateRequest->shipToAddress->countryCode
                                     ]
                                 ],
-                                "ShipFrom" => [
+                                /*  "ShipFrom" => [
                                     "Name" => "Billy Blanks",
                                     "Address" => [
                                         "AddressLine" => $rateRequest->shipFromAddress->addressLine,
@@ -203,27 +335,25 @@ class Ups implements CourrierManagementInterface
                                         "PostalCode" => $rateRequest->shipFromAddress->postalCode,
                                         "CountryCode" => $rateRequest->shipFromAddress->countryCode
                                     ]
-                                ],
+                                ], */
                                 "Service" => [
-                                    "Code" => $rateRequest->serviceCode,
-                                    "Description" => "Ground"
+                                    "Code" => "03", /* $rateRequest->serviceCode */
                                 ],
 
                                 "ShipmentTotalWeight" => [
                                     "UnitOfMeasurement" => [
-                                        "Code" => $rateRequest->unitOfMeasurementWeight,
-                                        "Description" => "Pounds"
+                                        "Code" => "KGS",
                                     ],
-                                    "Weight" => $rateRequest->totalWeight
+                                    "Weight" => $totalWeight
                                 ],
-                                "Package" => [
+                                "Package" => $packQuery /* [
                                     "PackagingType" => [
                                         "Code" => "00",
                                         "Description" => "Package"
                                     ],
                                     "Dimensions" => [
                                         "UnitOfMeasurement" => [
-                                            "Code" => $rateRequest->unitOfMeasurementDimention
+                                            "Code" => "CM"
                                         ],
                                         "Length" => $rateRequest->length,
                                         "Width" => $rateRequest->width,
@@ -231,11 +361,11 @@ class Ups implements CourrierManagementInterface
                                     ],
                                     "PackageWeight" => [
                                         "UnitOfMeasurement" => [
-                                            "Code" => $rateRequest->unitOfMeasurementWeight
+                                            "Code" => "KGS"
                                         ],
                                         "Weight" => $rateRequest->weight
                                     ]
-                                ]
+                                ] */
                             ]
                         ]
                     ]
@@ -290,7 +420,6 @@ class Ups implements CourrierManagementInterface
 
     public function track(TrackRequest $trackRequest): TrackResponse
     {
-
         $url = 'https://onlinetools.ups.com/track/v1/details/' . $trackRequest->trackNumber;
 
         try {
@@ -347,27 +476,56 @@ class Ups implements CourrierManagementInterface
         foreach ($shippingRequest->packages as $package) {
 
             $packQuery[] =  [
-                "Description" => $package['upsPackageDescription'],
+                "Dimensions" => [
+                    "UnitOfMeasurement" => [
+                        "Code" => "CM",
+                    ],
+                    "Length" => "30",
+                    "Width" => "30",
+                    "Height" => "30"
+                ],
+                /* "Description" => $package['upsPackageDescription'], */
                 "Packaging" => [
-                    "Code" => $package['upsPackagingCode']
+                    "Code" => /* $package['upsPackagingCode'] */ '00'
                 ],
                 "PackageWeight" => [
                     "UnitOfMeasurement" => [
-                        "Code" => $package['weightUnits']
+                        "Code" => 'KGS'
                     ],
                     "Weight" => $package['weightValue']
-                ],
-                "PackageServiceOptions" => ""
+                ], /*  "PackageServiceOptions" => [
+                    "COD" => [
+                        "CODFundsCode" => "0",
+                        "CODAmount" => [
+                            "CurrencyCode" => "EUR",
+                            "MonetaryValue" => "8.90"
+                        ]
+                    ]
+                ]  */
             ];
         }
-
-
 
         $url = 'https://wwwcie.ups.com/ship/' . $version . '/shipments';
 
         try {
 
             $client = new Client();
+
+            if (isset($shippingRequest->cashOnDeliveryValue)) {
+
+                $cashOnDelivery = [
+                    "COD" => [
+                        "CODFundsCode" => "1",
+                        "CODAmount" => [
+                            "CurrencyCode" => "EUR",
+                            "MonetaryValue" => $shippingRequest->cashOnDeliveryValue
+                        ]
+                    ]
+                ];
+                
+            } else {
+                $cashOnDelivery = [];
+            }
 
             $response = $client->post(
                 $url,
@@ -388,7 +546,6 @@ class Ups implements CourrierManagementInterface
                         "ShipmentRequest" => [
                             "Shipment" => [
 
-                                "Description" => $shippingRequest->upsShipmentRequestDescription,
                                 "Shipper" => [
                                     "Name" => $shippingRequest->shipperPersonName,
                                     "AttentionName" => $shippingRequest->shipperAttentionName,
@@ -398,11 +555,11 @@ class Ups implements CourrierManagementInterface
                                     ],
                                     "ShipperNumber" => $this->shipperNumber,
                                     "Address" => [
-                                        "AddressLine" => $shippingRequest->shipperAddressStreetLines,
-                                        "City" => $shippingRequest->shipperAddressCity,
-                                        "StateProvinceCode" => $shippingRequest->shipperAddressStateOrProvinceCode,
-                                        "PostalCode" => $shippingRequest->shipperAddressPostalCode,
-                                        "CountryCode" => $shippingRequest->shipperAddressCountryCode
+                                        "AddressLine" => $shippingRequest->shipperAddress->addressLine,
+                                        "City" => $shippingRequest->shipperAddress->city,
+                                        "StateProvinceCode" => $shippingRequest->shipperAddress->stateOrProvinceCode,
+                                        "PostalCode" => $shippingRequest->shipperAddress->postalCode,
+                                        "CountryCode" => $shippingRequest->shipperAddress->countryCode
                                     ]
                                 ],
                                 "ShipTo" => [
@@ -411,17 +568,16 @@ class Ups implements CourrierManagementInterface
                                     "Phone" => [
                                         "Number" => $shippingRequest->recipientPhoneNumber
                                     ],
-                                    "FaxNumber" => "1234567999",
-                                    "TaxIdentificationNumber" => $shippingRequest->recipientTaxIdentificationNumber,
+                                    /*  "TaxIdentificationNumber" => $shippingRequest->recipientTaxIdentificationNumber, */
                                     "Address" => [
-                                        "AddressLine" => $shippingRequest->recipientAddressStreetLines,
-                                        "City" => $shippingRequest->recipientAddressCity,
-                                        "StateProvinceCode" => $shippingRequest->recipientAddressStateOrProvinceCode,
-                                        "PostalCode" => $shippingRequest->recipientAddressPostalCode,
-                                        "CountryCode" => $shippingRequest->recipientAddressCountryCode
+                                        "AddressLine" => $shippingRequest->shipToAddress->addressLine,
+                                        "City" => $shippingRequest->shipToAddress->city,
+                                        "StateProvinceCode" => $shippingRequest->shipToAddress->stateOrProvinceCode,
+                                        "PostalCode" => $shippingRequest->shipToAddress->postalCode,
+                                        "CountryCode" => $shippingRequest->shipToAddress->countryCode
                                     ]
                                 ],
-                                "ShipFrom" => [
+                                /*  "ShipFrom" => [
                                     "Name" => $shippingRequest->shipFromName,
                                     "AttentionName" => $shippingRequest->shipFromAttentionName,
                                     "Phone" => [
@@ -436,29 +592,30 @@ class Ups implements CourrierManagementInterface
                                         "PostalCode" => $shippingRequest->shipFromPostalCode,
                                         "CountryCode" => $shippingRequest->shipFromCountryCode
                                     ]
-                                ],
+                                ], */
                                 "PaymentInformation" => [
                                     "ShipmentCharge" => [
                                         "Type" => "01",
                                         "BillShipper" => [
-                                            "AccountNumber" => "V5854W"
+                                            "AccountNumber" => $this->accountNumber
                                         ]
                                     ]
                                 ],
                                 "Service" => [
-                                    "Code" => $shippingRequest->upsServiceCode,
+                                    "Code" => $shippingRequest->serviceType,
                                     "Description" => "Expedited"
                                 ],
                                 "Package" => $packQuery,
-                                "ItemizedChargesRequestedIndicator" => "",
+                                /*    "ItemizedChargesRequestedIndicator" => "",
                                 "RatingMethodRequestedIndicator" => "",
                                 "TaxInformationIndicator" => "", "ShipmentRatingOptions" => [
                                     "NegotiatedRatesIndicator" => ""
-                                ]
+                                ] */
+                                "ShipmentServiceOptions" => $cashOnDelivery
                             ],
                             "LabelSpecification" => [
                                 "LabelImageFormat" => [
-                                    "Code" => $shippingRequest->imageType
+                                    "Code" => $this->imageType
                                 ]
                             ]
                         ]
@@ -503,7 +660,9 @@ class Ups implements CourrierManagementInterface
                 "value" => $response->ShipmentResponse->ShipmentResults->ShipmentCharges->TotalCharges->MonetaryValue
             ];
 
+            $count = 1;
             if (is_array($response->ShipmentResponse->ShipmentResults->PackageResults)) {
+
 
                 foreach ($response->ShipmentResponse->ShipmentResults->PackageResults as $pack) {
 
@@ -511,6 +670,10 @@ class Ups implements CourrierManagementInterface
                         "format" => $pack->ShippingLabel->ImageFormat->Code,
                         "image" => $pack->ShippingLabel->GraphicImage
                     ];
+
+                    file_put_contents("upsLabel" . $count . ".png", base64_decode($pack->ShippingLabel->GraphicImage));
+
+                    $count++;
                 }
             } else {
 
@@ -518,12 +681,20 @@ class Ups implements CourrierManagementInterface
                     "format" => $response->ShipmentResponse->ShipmentResults->PackageResults->ShippingLabel->ImageFormat->Code,
                     "image" => $response->ShipmentResponse->ShipmentResults->PackageResults->ShippingLabel->GraphicImage
                 ];
+
+                file_put_contents("upsLabel" . $count . ".png", base64_decode($response->ShipmentResponse->ShipmentResults->PackageResults->ShippingLabel->GraphicImage));
+
+                $count++;
             }
 
             return $shippingResponse;
         } catch (ClientException $e) {
 
             $response = json_decode($e->getResponse()->getBody()->getContents());
+
+            dump($response);
+
+            die;
 
             foreach ($response->response->errors as $error) {
                 dump($error->message);

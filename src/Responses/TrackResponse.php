@@ -1,9 +1,6 @@
 <?php
 
 namespace AlfredoMeschis\LaravelFedex\Responses;
-
-use Carbon\Carbon;
-
 class TrackResponse
 {
 

@@ -9,5 +9,4 @@ class Address {
     public $stateProvinceCode;
     public $postalCode;
     public $countryCode;
-
 }

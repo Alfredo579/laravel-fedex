@@ -3,13 +3,16 @@
 namespace AlfredoMeschis\LaravelFedex;
 
 use AlfredoMeschis\LaravelFedex\Courriers\CourrierBase;
+use AlfredoMeschis\LaravelFedex\Requests\AddressValidationRequest;
 use AlfredoMeschis\LaravelFedex\Requests\RateRequest;
 use AlfredoMeschis\LaravelFedex\Requests\ShippingRequest;
 use AlfredoMeschis\LaravelFedex\Requests\TrackRequest;
+use AlfredoMeschis\LaravelFedex\Responses\AddressValidationResponse;
 use AlfredoMeschis\LaravelFedex\Responses\ShippingResponse;
 use AlfredoMeschis\LaravelFedex\Responses\TrackResponse;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\Request;
 
 class Gls implements CourrierManagementInterface
 {
@@ -26,9 +29,14 @@ class Gls implements CourrierManagementInterface
         $this->contractCode = $config['contractCode'];
     }
 
-    public function addressValidation()
+    public function getServicesTypes()
     {
 
+        return [];
+    }
+
+    public function addressValidation(AddressValidationRequest $addressValidationRequest)
+    {
         $url = ('https://checkaddress.gls-italy.com/wscheckaddress.asmx/CheckAddress');
 
         $client = new Client();
@@ -41,20 +49,36 @@ class Gls implements CourrierManagementInterface
                 "SedeGls" => $this->glsSite,
                 "CodiceClienteGls" => $this->glsCode,
                 "PasswordClienteGls" => $this->password,
-                "SiglaNazione" => "IT",
-                "Cap" => "21013",
-                "Localita" => "Gallarate",
-                "Indirizzo" => "Via alberico alberici 2",
-                "SiglaProvincia" => "VA"
+                "SiglaNazione" => $addressValidationRequest->address->countryCode,
+                "Cap" => $addressValidationRequest->address->postalCode,
+                "Localita" => $addressValidationRequest->address->city,
+                "Indirizzo" => $addressValidationRequest->address->addressLine,
+                "SiglaProvincia" => $addressValidationRequest->address->stateProvinceCode
             ]
         ]);
 
-        dump(simplexml_load_string($response->getBody()->getContents()));
+        $response = simplexml_load_string($response->getBody()->getContents());
+
+        $addressValidationResponse = new AddressValidationResponse;
+        $addressValidationResponse->addressExist = $response->Esito->__toString();
+
+        $addressCount = 0;
+        if(count($response->Address) > 1) {
+            foreach($response->Address as $address) {
+
+                $addressValidationResponse->addresses[$addressCount]['postalCode'] = $address->Cap->__toString();
+                $addressValidationResponse->addresses[$addressCount]['city'] = $address->Comune->__toString();
+                $addressValidationResponse->addresses[$addressCount]['addressLine'] = $address->Indirizzo->__toString();
+                $addressValidationResponse->addresses[$addressCount]['stateProvinceCode'] = $address->SiglaProvincia->__toString();
+                $addressCount++;
+            }
+        }
+
+        return $addressValidationResponse;
     }
 
     public function track(TrackRequest $trackRequest): TrackResponse
     {
-
         $url = "https://infoweb.gls-italy.com/XML/get_xml_track.php";
 
         $client = new Client();
@@ -133,10 +157,6 @@ class Gls implements CourrierManagementInterface
             ]
         ]);
 
-        /*   $xml = simplexml_load_string($response->getBody()->getContents(), "SimpleXMLElement", LIBXML_NOCDATA);
-        $json = json_encode($xml);
-        $array = json_decode($json, TRUE); */
-
         $courrierBase = new CourrierBase([]);
 
         $responseArray = $courrierBase->responseToArray($response);
@@ -150,30 +170,41 @@ class Gls implements CourrierManagementInterface
         $url = "https://labelservice.gls-italy.com/ilswebservice.asmx/AddParcel";
 
         $client = new Client();
+        $parcel = '';
 
-        $response = $client->get($url, [
+        foreach ($shippingRequest->packages as $key => $package) {
 
-            "query" => [
+            $weight = $package['weightValue'];
+            $pesoVolume = $package['dimensionsLength'] * $package['dimensionsWidth'] * $package['dimensionsHeight'] / 5000;
+
+            $parcel .= str_replace("\n", "", "<Parcel>
+<CodiceContrattoGls>" . $this->contractCode . "</CodiceContrattoGls> 
+<RagioneSociale>$shippingRequest->recipientPersonName" . " " . "$shippingRequest->recipientCompanyName</RagioneSociale> 
+<Indirizzo>".$shippingRequest->shipToAddress->addressLine."</Indirizzo>
+<Localita>".$shippingRequest->shipToAddress->city."</Localita>
+<Zipcode>".$shippingRequest->shipToAddress->postalCode."</Zipcode>
+<Provincia>".$shippingRequest->shipToAddress->stateProvinceCode."</Provincia>
+<Colli>$shippingRequest->packageCount</Colli>
+<FormatoPdf>$shippingRequest->pdfFormat</FormatoPdf>
+<GeneraPdf>4</GeneraPdf>
+<ContatoreProgressivo>001</ContatoreProgressivo>
+<PesoReale>$weight</PesoReale>
+<ImportoContrassegno>90,00</ImportoContrassegno>
+<ModalitaIncasso>CONT</ModalitaIncasso>
+<PesoVolume>$pesoVolume</PesoVolume>
+<TipoPorto>$shippingRequest->portType</TipoPorto>
+<NoteSpedizione>$shippingRequest->note</NoteSpedizione>
+</Parcel>");
+        }
+
+        $response = $client->post($url, [
+            "form_params" => [
                 "XMLInfoParcel" => str_replace("\n", "", "<Info>
-                <SedeGls>" . $this->glsSite . "</SedeGls>
-                <CodiceClienteGls>" . $this->glsCode . "</CodiceClienteGls> 
-                <PasswordClienteGls>" . $this->password . "</PasswordClienteGls> 
-                <Parcel>
-                    <CodiceContrattoGls>" . $this->contractCode . "</CodiceContrattoGls> 
-                    <RagioneSociale>$shippingRequest->recipientPersonName" . " " . "$shippingRequest->recipientCompanyName</RagioneSociale> 
-                    <Indirizzo>$shippingRequest->recipientAddressStreetLines</Indirizzo>
-                    <Localita>$shippingRequest->recipientAddressCity</Localita>
-                    <Zipcode>$shippingRequest->recipientAddressPostalCode</Zipcode>
-                    <Provincia>$shippingRequest->recipientAddressStateOrProvinceCode</Provincia>
-                    <Colli>$shippingRequest->packageCount</Colli>
-                    <FormatoPdf>$shippingRequest->pdfFormat</FormatoPdf>
-                    <GeneraPdf>4</GeneraPdf>
-                    <ContatoreProgressivo>001</ContatoreProgressivo>
-                    <PesoReale>$shippingRequest->weightValue</PesoReale>
-                    <TipoPorto>$shippingRequest->portType</TipoPorto>
-                    <NoteSpedizione>$shippingRequest->note</NoteSpedizione>
-                </Parcel>
-                </Info>")
+<SedeGls>" . $this->glsSite . "</SedeGls>
+<CodiceClienteGls>" . $this->glsCode . "</CodiceClienteGls> 
+<PasswordClienteGls>" . $this->password . "</PasswordClienteGls> 
+$parcel
+</Info>")
             ]
         ]);
 
@@ -183,13 +214,28 @@ class Gls implements CourrierManagementInterface
 
         $responseArray = $courrierBase->responseToArray($response);
 
-        file_put_contents("gls_create_label.pdf", base64_decode($responseArray['Parcel']['PdfLabel']));
-
         dump($responseArray);
 
-        $shippingResponse->trackNumber = $responseArray["Parcel"]["NumeroSpedizione"];
+        if(isset($responseArray['Parcel'][0])) {
 
-        $shippingResponse->labels = [$responseArray["Parcel"]["PdfLabel"]];
+            $count = 1;
+            foreach ($responseArray['Parcel'] as $resp) {
+    
+                file_put_contents("gls_create_label_" . $count . ".pdf", base64_decode($resp['PdfLabel']));
+    
+                $shippingResponse->trackNumber = $resp["NumeroSpedizione"];
+    
+                $shippingResponse->labels = [$resp["PdfLabel"]];
+                $count++;
+            }
+            
+        } else {
+            file_put_contents("gls_create_label_1.pdf", base64_decode($responseArray['Parcel']['PdfLabel']));
+    
+            $shippingResponse->trackNumber = $responseArray['Parcel']["NumeroSpedizione"];
+
+            $shippingResponse->labels = [$responseArray['Parcel']["PdfLabel"]];
+        }
 
         return $shippingResponse;
     }

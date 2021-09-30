@@ -11,6 +11,7 @@ use AlfredoMeschis\LaravelFedex\Responses\ShippingResponse;
 use AlfredoMeschis\LaravelFedex\Responses\TrackResponse;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 
 /* TODO: 
     addressValidation function,
@@ -21,12 +22,46 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
     private $username;
     private $password;
     private $account;
+    public $dropOffTypes = [
+        'REGULAR_PICKUP' => 'REGULAR_PICKUP',
+        'REQUEST_COURIER' => 'REQUEST_COURIER'
+    ];
+    public $serviceTypes = [
+        "2" => "Acquisto Semplice",
+        "5" => "SprintLine",
+        "6" => "SecureLine",
+        "7" => "Corriere Semplice",
+        "9" => "Europack",
+        "B" => "Breack bulk express",
+        "C" => "Corriere Medico",
+        "D" => "Corriere internazionale",
+        "U" => "Corriere internazionale",
+        "K" => "Corriere 9:00",
+        "L" => "Corriere 10:00",
+        "G" => "Seleziona Risparmio Familiare",
+        "W" => "Seleziona Risparmio",
+        "I" => "Breack bulk economy",
+        "N" => "Domestic Express",
+        "O" => "Altri",
+        "R" => "Globalmail business",
+        "S" => "Stesso Giorno",
+        "T" => "Corriere 12:00",
+        "X" => "Corriere Busta",
+        "P" => "Express Wordwilde (WPX)"
+
+    ];
 
     public function __construct(array $config)
     {
         $this->username = $config['username'];
         $this->password = $config['password'];
         $this->account = $config['account'];
+    }
+
+    public function getServicesTypes()
+    {
+
+        return ["serviceType" => $this->serviceTypes, "dropOffType" => $this->dropOffTypes];
     }
 
     public function getServices()
@@ -59,7 +94,7 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
             ]
         ]);
 
-        dump(json_decode($response->getBody()->getContents()));
+        /*  dump(json_decode($response->getBody()->getContents())); */
     }
 
     public function rate(RateRequest $rateRequest)
@@ -67,6 +102,23 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
         $url = "https://wsbexpress.dhl.com/rest/sndpt/RateRequest";
 
         $client = new Client();
+
+        foreach ($rateRequest->packages as $pack) {
+
+            $packQuery[] =
+                [
+                    '@number' => $pack['packageCount'],
+                    'Weight' => [
+                        'Value' => $pack['weight'],
+                    ],
+                    'Dimensions' => [
+                        'Length' => $pack['length'],
+                        'Width' => $pack['width'],
+                        'Height' => $pack['height']
+                    ]
+                ];
+        }
+
 
         $response = $client->post($url, [
             "headers" => [
@@ -90,23 +142,13 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
                                 'CountryCode' => $rateRequest->shipperAddress->countryCode,
                             ],
                             'Recipient' => [
-                                'City' => $rateRequest->shipFromAddress->city,
-                                'PostalCode' => $rateRequest->shipFromAddress->postalCode,
-                                'CountryCode' => $rateRequest->shipFromAddress->countryCode,
+                                'City' => $rateRequest->shipToAddress->city,
+                                'PostalCode' => $rateRequest->shipToAddress->postalCode,
+                                'CountryCode' => $rateRequest->shipToAddress->countryCode,
                             ],
                         ],
                         'Packages' => [
-                            'RequestedPackages' => [
-                                '@number' => $rateRequest->packageCount,
-                                'Weight' => [
-                                    'Value' => $rateRequest->weight,
-                                ],
-                                'Dimensions' => [
-                                    'Length' => $rateRequest->length,
-                                    'Width' => $rateRequest->width,
-                                    'Height' => $rateRequest->height
-                                ],
-                            ],
+                            'RequestedPackages' => $packQuery
                         ],
                     ],
                 ],
@@ -123,7 +165,10 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
 
             $rateResponse->expectedDateDelivery = $service->DeliveryTime;
 
-            $rateResponse->totalPrice = $service->TotalNet->Amount;
+            $rateResponse->totalPrice = [
+                "currency" => $service->Charges->Currency,
+                "value" => $service->TotalNet->Amount
+            ];
 
             if (is_array($service->Charges->Charge)) {
 
@@ -133,7 +178,6 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
                         "currency" => $service->Charges->Currency,
                         "value" => $charge->ChargeAmount
                     ];
-
                 }
             } else {
 
@@ -147,7 +191,7 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
             $rateResponses[] = $rateResponse;
         }
 
-        dump($rateResponses);
+        return $rateResponses;
     }
 
     public function shipping(ShippingRequest $shippingRequest): ShippingResponse
@@ -156,102 +200,133 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
 
         $client = new Client();
 
+        $packageCounter = 1;
+
+        foreach ($shippingRequest->packages as $package) {
+
+            $packQuery[] = [
+                '@number' => $packageCounter,
+                'Weight' => $package['weightValue'],
+                'Dimensions' => [
+                    'Length' => $package['dimensionsLength'],
+                    'Width' => $package['dimensionsWidth'],
+                    'Height' => $package['dimensionsHeight'],
+                ],
+            ];
+
+            $packageCounter++;
+        }
+
+        if(isset($shippingRequest->cashOnDeliveryValue)) {
+
+            $cashOnDelivery = [
+                'Service' => [
+                    'ServiceType' => 'KB',
+                    'ServiceValue' => $shippingRequest->cashOnDeliveryValue,
+                    'CurrencyCode' => 'EUR',
+                    'PaymentMethods' => [
+                        'PaymentMethod' => 'CSH'
+                    ]
+                ]
+            ];
+            
+        } else {
+            $cashOnDelivery = [];
+        }
+
+
+
         /* '2021-09-10T12:30:47GMT+01:00' */
 
-        $response = $client->post($url, [
-            "headers" => [
-                "Authorization" => $this->encodeAuth($this->username, $this->password)
-            ],
-            "json" => [
-                'ShipmentRequest' => [
-                    'RequestedShipment' => [
-                        'ShipmentInfo' => [
-                            'DropOffType' => $shippingRequest->dhlDropoffType,
-                            'ServiceType' => $shippingRequest->dhlServiceType,
-                            'Account' => $this->account,
-                            'Currency' => 'SGD',
-                            'UnitOfMeasurement' => 'SI',
-                        ],
-                        'ShipTimestamp' => Carbon::now()->add("3 hours")->timezone("GMT")->format("Y-m-d\TH:i:seP"),
-                        'PaymentInfo' => 'DDP',
-                        'InternationalDetail' => [
-                            'Commodities' => [
-                                'NumberOfPieces' => $shippingRequest->packageCount,
-                                'Description' => 'Customer Reference 1',
-                                'CountryOfManufacture' => 'CN',
-                                'Quantity' => 1,
-                                'UnitPrice' => 5,
-                                'CustomsValue' => 10,
-                            ],
-                            'Content' => 'NON_DOCUMENTS',
-                        ],
-                        'Ship' => [
-                            'Shipper' => [
-                                'Contact' => [
-                                    'PersonName' => $shippingRequest->shipperPersonName,
-                                    'CompanyName' => 'DHL',
-                                    'PhoneNumber' => $shippingRequest->shipperPhoneNumber,
-                                    'EmailAddress' => $shippingRequest->shipperEmail,
-                                ],
-                                'Address' => [
-                                    'StreetLines' => $shippingRequest->shipperAddressStreetLines,
-                                    'City' => $shippingRequest->shipperAddressCity,
-                                    'PostalCode' => $shippingRequest->shipperAddressPostalCode,
-                                    'CountryCode' => $shippingRequest->shipperAddressCountryCode,
-                                ],
-                            ],
-                            'Recipient' => [
-                                'Contact' => [
-                                    'PersonName' => $shippingRequest->recipientPersonName,
-                                    'CompanyName' => $shippingRequest->recipientCompanyName,
-                                    'PhoneNumber' => $shippingRequest->recipientPhoneNumber,
-                                    'EmailAddress' => $shippingRequest->recipientEmail,
-                                ],
-                                'Address' => [
-                                    'StreetLines' => $shippingRequest->recipientAddressStreetLines,
-                                    'City' => $shippingRequest->recipientAddressCity,
-                                    'StateOrProvinceCode' => $shippingRequest->recipientAddressStateOrProvinceCode,
-                                    'PostalCode' => $shippingRequest->recipientAddressPostalCode,
-                                    'CountryCode' => $shippingRequest->recipientAddressCountryCode,
-                                ],
-                            ],
-                        ],
-                        'Packages' => [
-                            'RequestedPackages' => [
-                                0 => [
-                                    '@number' => '1',
-                                    'Weight' => $shippingRequest->weightValue,
-                                    'Dimensions' => [
-                                        'Length' => $shippingRequest->dimensionsLength,
-                                        'Width' => $shippingRequest->dimensionsWidth,
-                                        'Height' => $shippingRequest->dimensionsHeight,
-                                    ],
-                                    'CustomerReferences' => 'Piece 1',
-                                ],
-                            ],
-                        ],
-                        'ManifestBypass' => 'N',
-                    ],
+        try {
+
+            $response = $client->post($url, [
+                "headers" => [
+                    "Authorization" => $this->encodeAuth($this->username, $this->password)
                 ],
-            ]
-        ]);
+                "json" => [
+                    'ShipmentRequest' => [
+                        'RequestedShipment' => [
+                            "GetRateEstimates" => "Y", /* not work */
+                            'ShipmentInfo' => [
+                                "LabelTemplate" => "ECOM26_84_001",
+                                'DropOffType' => $shippingRequest->dropOffType,
+                                'ServiceType' => $shippingRequest->serviceType,
+                                'Account' => $this->account,
+                                'Currency' => 'EUR',
+                                'UnitOfMeasurement' => 'SI',
+                                'SpecialServices' => $cashOnDelivery
+                            ],
+                            'ShipTimestamp' => Carbon::now()->add("3 hours")->timezone("GMT")->format("Y-m-d\TH:i:seP"),
+                            'PaymentInfo' => 'DDP',
+                            'InternationalDetail' => [
+                                'Commodities' => [
+                                    'NumberOfPieces' => $shippingRequest->packageCount,
+                                    'Description' => 'Customer Reference 1',
+                                    'CountryOfManufacture' => 'CN',
+                                    'Quantity' => 1,
+                                    'UnitPrice' => 5,
+                                    'CustomsValue' => 10,
+                                ],
+                                'Content' => 'NON_DOCUMENTS',
+                            ],
+                            'Ship' => [
+                                'Shipper' => [
+                                    'Contact' => [
+                                        'PersonName' => $shippingRequest->shipperPersonName,
+                                        'CompanyName' => $shippingRequest->shipperCompanyName,
+                                        'PhoneNumber' => $shippingRequest->shipperPhoneNumber,
+                                        'EmailAddress' => $shippingRequest->shipperEmail,
+                                    ],
+                                    'Address' => [
+                                        'StreetLines' => $shippingRequest->shipperAddress->addressLine,
+                                        'City' => $shippingRequest->shipperAddress->city,
+                                        'PostalCode' => $shippingRequest->shipperAddress->postalCode,
+                                        'CountryCode' => $shippingRequest->shipperAddress->countryCode,
+                                    ],
+                                ],
+                                'Recipient' => [
+                                    'Contact' => [
+                                        'PersonName' => $shippingRequest->recipientPersonName,
+                                        'CompanyName' => $shippingRequest->recipientCompanyName,
+                                        'PhoneNumber' => $shippingRequest->recipientPhoneNumber,
+                                        'EmailAddress' => $shippingRequest->recipientEmail,
+                                    ],
+                                    'Address' => [
+                                        'StreetLines' => $shippingRequest->shipToAddress->addressLine,
+                                        'City' => $shippingRequest->shipToAddress->city,
+                                        'StateOrProvinceCode' => $shippingRequest->shipToAddress->stateOrProvinceCode,
+                                        'PostalCode' => $shippingRequest->shipToAddress->postalCode,
+                                        'CountryCode' => $shippingRequest->shipToAddress->countryCode,
+                                    ],
+                                ],
+                            ],
+                            'Packages' => [
+                                'RequestedPackages' => $packQuery
+                            ],
+                            'ManifestBypass' => 'N',
+                        ],
+                    ],
+                ]
+            ]);
 
-        $response = json_decode($response->getBody()->getContents());
+            $response = json_decode($response->getBody()->getContents());
 
-        /* dump($response);
-        die; */
+            dump($response);
 
-        file_put_contents("dhl_label.pdf", base64_decode($response->ShipmentResponse->LabelImage[0]->GraphicImage));
+            file_put_contents("dhl_label.pdf", base64_decode($response->ShipmentResponse->LabelImage[0]->GraphicImage));
 
-        $shippingResponse = new ShippingResponse;
+            $shippingResponse = new ShippingResponse;
 
-        $shippingResponse->labels = [$response->ShipmentResponse->LabelImage[0]->GraphicImage];
+            $shippingResponse->labels = [$response->ShipmentResponse->LabelImage[0]->GraphicImage];
 
-        $shippingResponse->trackNumber = $response->ShipmentResponse->PackagesResult->PackageResult[0]->TrackingNumber;
+            $shippingResponse->trackNumber = $response->ShipmentResponse->PackagesResult->PackageResult[0]->TrackingNumber;
 
-        dump($shippingResponse);
+            return $shippingResponse;
+        } catch (ClientException $e) {
 
-        return $shippingResponse;
+            dump($e);
+        }
     }
 
     public function track(TrackRequest $trackRequest): TrackResponse

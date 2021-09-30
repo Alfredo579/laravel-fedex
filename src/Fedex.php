@@ -9,13 +9,26 @@ use AlfredoMeschis\LaravelFedex\Responses\RateResponse;
 use AlfredoMeschis\LaravelFedex\Responses\ShippingResponse;
 use AlfredoMeschis\LaravelFedex\Responses\TrackResponse;
 use SoapClient;
-
 class Fedex 
 {
     private $accountNumber;
     private $meterNumber;
     private $key;
     private $password;
+    private $labelFormatType;
+    private $imageType;
+    private $labelStockType;
+    public $dropOffTypes = [
+        'REGULAR_PICKUP' => 'REGULAR_PICKUP', 
+        'REQUEST_COURIER' => 'REQUEST_COURIER',
+        'DROP_BOX' => 'DROP_BOX'
+    ];
+
+    public $serviceTypes = [
+        'STANDARD_OVERNIGHT' => 'STANDARD_OVERNIGHT',
+        'PRIORITY_OVERNIGHT' => 'PRIORITY_OVERNIGHT',
+        'FEDEX_GROUND' => 'FEDEX_GROUND',
+    ];
 
     public function __construct(array $config)
     {
@@ -23,11 +36,18 @@ class Fedex
         $this->meterNumber = $config['meterNumber'];
         $this->key = $config['key'];
         $this->password = $config['password'];
+        $this->labelFormatType = $config['labelFormatType'];
+        $this->imageType = $config['imageType'];
+        $this->labelStockType = $config['labelStockType'];
+    }
+
+    public function getServicesTypes() {
+
+        return ["serviceType" => $this->serviceTypes,"dropOffType" => $this->dropOffTypes];
     }
 
     public function addressValidation()
     {
-
         $client = new SoapClient('CountryService_v8.wsdl');
 
         $response = $client->validatePostal([
@@ -208,7 +228,6 @@ class Fedex
 
     public function shipping(ShippingRequest $shippingRequest): ShippingResponse
     {
-
         $path_to_wsdl = "ShipService_v26.wsdl";
 
         $client = new SoapClient($path_to_wsdl);
@@ -233,7 +252,7 @@ class Fedex
             ],
             'RequestedShipment' => [
                 'ShipTimestamp' =>  date('c'),
-                'DropoffType' => $shippingRequest->fedexDropoffType,
+                'DropoffType' => $shippingRequest->dropoffType,
                 "ShippingChargesPayment" => [
                     "PaymentType" => "SENDER",
                     "Payor" => [
@@ -243,7 +262,7 @@ class Fedex
                         ]
                     ]
                 ],
-                'ServiceType' => $shippingRequest->fedexServiceType, 
+                'ServiceType' => $shippingRequest->serviceType, 
                 'PackagingType' => $shippingRequest->fedexPackagingType, 
                 'Shipper' => [
                     'Contact' => [
@@ -275,15 +294,15 @@ class Fedex
                     ]
                 ],
                 'LabelSpecification' => [
-                    'LabelFormatType' => $shippingRequest->labelFormatType, // valid values COMMON2D, LABEL_DATA_ONLY
-                    'ImageType' => $shippingRequest->imageType,  // valid values DPL, EPL2, PDF, ZPLII and PNG
-                    'LabelStockType' => $shippingRequest->labelStockType
+                    'LabelFormatType' => $this->labelFormatType, // valid values COMMON2D, LABEL_DATA_ONLY
+                    'ImageType' => $this->imageType,  // valid values DPL, EPL2, PDF, ZPLII and PNG
+                    'LabelStockType' => $this->labelStockType
                 ],
                 'PackageCount' => $shippingRequest->packageCount,
                 'RequestedPackageLineItems' => [
                     '0' => [
-                        'SequenceNumber' => $shippingRequest->sequenceNumber,
-                        'GroupPackageCount' => $shippingRequest->groupPackageCount,
+                        /* 'SequenceNumber' => $shippingRequest->sequenceNumber, */
+                        /* 'GroupPackageCount' => $shippingRequest->groupPackageCount, */
                         'Weight' => [
                             'Value' => $shippingRequest->weightValue,
                             'Units' => $shippingRequest->weightUnits
@@ -298,6 +317,8 @@ class Fedex
                 ]
             ],
         ]);
+
+        dump($response);
 
         $shippingResponse = new ShippingResponse;
         $shippingResponse->trackNumber = $response->CompletedShipmentDetail->MasterTrackingId->TrackingNumber;

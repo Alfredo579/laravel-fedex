@@ -9,20 +9,28 @@ use AlfredoMeschis\LaravelFedex\Requests\RateRequest;
 use AlfredoMeschis\LaravelFedex\Requests\ShippingRequest;
 use AlfredoMeschis\LaravelFedex\Requests\TrackRequest;
 use AlfredoMeschis\LaravelFedex\Ups;
+use GuzzleHttp\Client;
 
 $config = [
-    'Ups' => [
-        'userName' => "scaliagroup2017",
-        'password' => "Spedizioni1",
-        'accessLicenseNumber' => "2DA3451A0692A2D2",
-        'locale' => 'it_IT',
-        'shipperNumber' => "V5854W"
+    "Ups" => [
+        "userName" => "scaliagroup2017",
+        "password" => "Spedizioni1",
+        "accessLicenseNumber" => "2DA3451A0692A2D2",
+        "accountNumber" => "V5854W",
+        "locale" => "it_IT",
+        "shipperNumber" => "V5854W",
+        "serviceType" => "65"
     ],
-    'Fedex' => [
-        'accountNumber' => '801405622',
-        'meterNumber' => '100635345',
-        'key' => 'LwqzW6viiNbVTzPF',
-        'password' => 'lYWFAYdqWqav0HWzLdVKe5n0T'
+    "Fedex" => [
+        "accountNumber" => "801405622",
+        "meterNumber" => "100635345",
+        "key" => "LwqzW6viiNbVTzPF",
+        "password" => "lYWFAYdqWqav0HWzLdVKe5n0T",
+        "dropOffType" => "REGULAR_PICKUP",
+        "serviceType" => "PRIORITY_OVERNIGHT",
+        "labelFormatType" => "COMMON2D",
+        "imageType" => "PDF",
+        "labelStockType" => "PAPER_7X4.75"
     ],
     "Gls" => [
         "glsSite" => "PA",
@@ -33,7 +41,10 @@ $config = [
     "Dhl" => [
         "username" => "scaliagrou2IT",
         "password" => "Z#5aZ^7eR@5n",
-        "account" => 106067134
+        "account" => 106067134,
+        "serviceCode" => "P",
+        "dropOffType" => "REGULAR_PICKUP",
+        "serviceType" => "P"
     ]
 ];
 
@@ -58,10 +69,10 @@ $rateRequest->shipToAddress->stateProvinceCode = "RI";
 $rateRequest->shipToAddress->postalCode = "02010";
 $rateRequest->shipToAddress->countryCode = "IT";
 
-$rateRequest->shipFromAddress->addressLine = "Via delle Mura Gianicolensi 93";
-$rateRequest->shipFromAddress->city = "Cascano";
-$rateRequest->shipFromAddress->stateProvinceCode = "CE";
-$rateRequest->shipFromAddress->postalCode = "81037";
+$rateRequest->shipFromAddress->addressLine = "Via Maresciallo Caviglia 10";
+$rateRequest->shipFromAddress->city = "Palermo";
+$rateRequest->shipFromAddress->stateProvinceCode = "PA";
+$rateRequest->shipFromAddress->postalCode = "90143";
 $rateRequest->shipFromAddress->countryCode = "IT";
 
 $rateRequest->serviceCode = "03";
@@ -85,15 +96,14 @@ $shippingRequest->fedexPackagingType = 'YOUR_PACKAGING'; // valid values FEDEX_B
 
 /* ups */
 $shippingRequest->upsServiceCode = "65";
-$shippingRequest->upsServiceDescription = "Expedited";
+/* $shippingRequest->upsServiceDescription = "Expedited"; */
 $shippingRequest->upsPackageDescription = "International Goods";
-$shippingRequest->upsPackagingCode = "00";
-$shippingRequest->upsShipmentRequestDescription = "1206 PTR";
+/* $shippingRequest->upsShipmentRequestDescription = "descrizione prodotto"; */
 $shippingRequest->upsShipperNumber = "V5854W";
 
 /* dhl */
 $shippingRequest->dhlDropoffType = 'REGULAR_PICKUP';
-$shippingRequest->dhlServiceType = 'P';
+$shippingRequest->dhlServiceType = 'B';
 /* $shippingRequest->dhlAccountNumber = 106067134; */
 
 /* gls */
@@ -119,22 +129,21 @@ $shippingRequest->recipientCompanyName = 'Erida';
 $shippingRequest->recipientPhoneNumber = '1234567890';
 $shippingRequest->recipientEmail = 'jackie.chan@eei.com';
 $shippingRequest->recipientAttentionName = "AttentionName";
-$shippingRequest->recipientTaxIdentificationNumber = "456999";
 
-$shippingRequest->recipientAddressStreetLines = '500 Hunt Valley Road';
-$shippingRequest->recipientAddressCity = 'New Kensington PA';
-$shippingRequest->recipientAddressStateOrProvinceCode = "PA";
-$shippingRequest->recipientAddressPostalCode = '15068';
-$shippingRequest->recipientAddressCountryCode = 'US';
+$shippingRequest->recipientAddressStreetLines = 'Corso Novara 103';
+$shippingRequest->recipientAddressCity = 'Mandras';
+$shippingRequest->recipientAddressStateOrProvinceCode = "NU";
+$shippingRequest->recipientAddressPostalCode = '08020';
+$shippingRequest->recipientAddressCountryCode = 'IT';
 
 $shippingRequest->shipFromName = "ShipperName";
 $shippingRequest->shipFromAttentionName = "AttentionName";
 $shippingRequest->shipFromPhoneNumber = "1234567890";
 $shippingRequest->shipFromTaxIdentificationNumber = "456999";
-$shippingRequest->shipFromAddressLine = "via roma 6";
+$shippingRequest->shipFromAddressLine = "via maresciallo caviglia 10";
 $shippingRequest->shipFromCity = "Palermo";
 $shippingRequest->shipFromStateProvinceCode = "PA";
-$shippingRequest->shipFromPostalCode = "90124";
+$shippingRequest->shipFromPostalCode = "90143";
 $shippingRequest->shipFromCountryCode = "IT";
 
 $shippingRequest->labelFormatType = 'COMMON2D';
@@ -151,15 +160,6 @@ $shippingRequest->packages = [
         "upsPackagingCode" => "00",
         "weightUnits" => 'KGS',
     ],
-    [
-        "weightValue" => "15",
-        "dimensionsLength" => 5,
-        "dimensionsWidth" => 5,
-        "dimensionsHeight" => 5,
-        "upsPackageDescription" => "International Goods",
-        "upsPackagingCode" => "00",
-        "weightUnits" => 'KGS',
-    ]
 ];
 
 $shippingRequest->packageCount = 1;
@@ -174,7 +174,7 @@ $shippingRequest->dimensionsWidth = 5;
 $shippingRequest->dimensionsHeight = 5;
 $shippingRequest->dimensionsUnits = 'CM';
 
-/* test to trackRequest 
+/* testNumber to trackRequest 
 fedex trackNumber = '774613744771'
 ups trackNumber = '1ZX00F226894705880'
 gls trackNumber = "610598168"
@@ -183,4 +183,4 @@ dhl trackNumber = 9356579890
 
 $trackRequest->trackNumber = '774613744771';
 
-dump($ups->shipping($shippingRequest));
+dump($fedex->shipping($shippingRequest));

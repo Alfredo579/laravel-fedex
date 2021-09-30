@@ -2,10 +2,10 @@
 
 namespace AlfredoMeschis\LaravelFedex\Requests;
 
+use AlfredoMeschis\LaravelFedex\Models\Address;
 
 class ShippingRequest
 {
-
     public $dropoffType;
     public $serviceType;
     public $packagingType;
@@ -30,6 +30,7 @@ class ShippingRequest
     public $shipperEmail;
     public $shipperAttentionName;
     public $shipperTaxIdentificationNumber;
+    public $shipperAddress;
     public $shipperAddressStreetLines;
     public $shipperAddressCity;
     public $shipperAddressStateOrProvinceCode;
@@ -69,4 +70,11 @@ class ShippingRequest
     public $dimensionsUnits;
 
     public $packages = [];
+
+    public function __construct() 
+    {
+        $this->shipperAddress = new Address;
+        $this->shipToAddress = new Address;
+        $this->shipFromAddress = new Address;
+    }
 }

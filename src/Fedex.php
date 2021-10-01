@@ -75,7 +75,7 @@ class Fedex
             "CarrierCode" => 'FDXG',
         ]);
 
-        dump($response);
+        var_dump($response);
     }
 
     public function rate(RateRequest $rateRequest): RateResponse
@@ -158,7 +158,7 @@ class Fedex
             ],
         ]);
 
-        dump($response);
+        var_dump($response);
 
         $rateResponse = new RateResponse;
 
@@ -221,7 +221,7 @@ class Fedex
             ];
         }
 
-        dump($response);
+        var_dump($response);
 
         return $rateResponse;
     }
@@ -318,7 +318,7 @@ class Fedex
             ],
         ]);
 
-        dump($response);
+        var_dump($response);
 
         $shippingResponse = new ShippingResponse;
         $shippingResponse->trackNumber = $response->CompletedShipmentDetail->MasterTrackingId->TrackingNumber;
@@ -404,6 +404,6 @@ class Fedex
             ],
         ]);
 
-        dump($response);
+        var_dump($response);
     }
 }

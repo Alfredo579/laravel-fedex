@@ -10,7 +10,7 @@ use AlfredoMeschis\LaravelFedex\Requests\TrackRequest;
 use AlfredoMeschis\LaravelFedex\Responses\AddressValidationResponse;
 use AlfredoMeschis\LaravelFedex\Responses\ShippingResponse;
 use AlfredoMeschis\LaravelFedex\Responses\TrackResponse;
-use Carbon\Carbon;
+use DateTime;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 
@@ -101,14 +101,14 @@ class Gls implements CourrierManagementInterface
 
         $count = 0;
 
+        
         foreach ($events['Data'] as $eventData) {
 
             $trackResponse->setHistory(
-
                 $events['Luogo'][$count],
                 $events['Stato'][$count],
-                is_string($events['Data'][$count]) && is_string($events['Ora'][$count]) ? Carbon::createFromFormat('d/m/y-H:i', $events['Data'][$count] . "-" . $events['Ora'][$count]) : Carbon::createFromFormat('d/m/y', $events['Data'][$count])->startOfDay(),
-            );
+                is_string($events['Data'][$count]) && is_string($events['Ora'][$count]) ? DateTime::createFromFormat('d/m/y-H:i', $events['Data'][$count] . "-" . $events['Ora'][$count])->format('d/m/y-H:i') : DateTime::createFromFormat('d/m/y-H:i', $events['Data'][$count] . "-" . "00:00")->format('d/m/y-H:i'),
+            ); 
             $count++;
         }
         $trackResponse->setState();
@@ -161,7 +161,7 @@ class Gls implements CourrierManagementInterface
 
         $responseArray = $courrierBase->responseToArray($response);
 
-        dump($responseArray);
+        /* dump($responseArray); */
     }
 
     public function shipping(ShippingRequest $shippingRequest): ShippingResponse
@@ -214,7 +214,7 @@ $parcel
 
         $responseArray = $courrierBase->responseToArray($response);
 
-        dump($responseArray);
+        /* dump($responseArray); */
 
         if(isset($responseArray['Parcel'][0])) {
 
@@ -260,7 +260,7 @@ $parcel
         $responseArray = $courrierBase->responseToArray($response);
 
 
-        dump($responseArray);
+        /* dump($responseArray); */
     }
 
     public function closeWorkDayByShipmentNumber()
@@ -291,7 +291,7 @@ $parcel
 
         $responseArray = $courrierBase->responseToArray($response);
 
-        dump($responseArray);
+        /* dump($responseArray); */
     }
 
     public function recoveryLabel()
@@ -311,11 +311,9 @@ $parcel
         ]);
 
         $courrierBase = new CourrierBase([]);
-
         $responseArray = $courrierBase->responseToArray($response);
-
         file_put_contents("gls_recovery_label.pdf", base64_decode($responseArray[0]));
 
-        dump($responseArray);
+        /* dump($responseArray); */
     }
 }

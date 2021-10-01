@@ -8,7 +8,6 @@ use AlfredoMeschis\LaravelFedex\Requests\TrackRequest;
 use AlfredoMeschis\LaravelFedex\Responses\RateResponse;
 use AlfredoMeschis\LaravelFedex\Responses\ShippingResponse;
 use AlfredoMeschis\LaravelFedex\Responses\TrackResponse;
-use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 
@@ -235,13 +234,13 @@ class Ups implements CourrierManagementInterface
                 ]
             ]);
 
-            dump(json_decode($response->getBody()->getContents()));
+           /*  dump(json_decode($response->getBody()->getContents())); */
         } catch (ClientException $e) {
 
             $response = json_decode($e->getResponse()->getBody()->getContents());
 
             foreach ($response->response->errors as $error) {
-                dump($error->message);
+                var_dump($error->message);
             }
         }
     }
@@ -413,7 +412,7 @@ class Ups implements CourrierManagementInterface
 
             foreach ($response->response->errors as $error) {
 
-                dump($error->message);
+                var_dump($error->message);
             }
         }
     }
@@ -442,6 +441,8 @@ class Ups implements CourrierManagementInterface
             ]);
 
             $resp = json_decode($response->getBody()->getContents());
+            var_dump($resp);
+            die;
 
             $trackResponse = new TrackResponse;
 
@@ -450,7 +451,8 @@ class Ups implements CourrierManagementInterface
                 $trackResponse->setHistory(
                     $activityItem->location->address->city,
                     $activityItem->status->description,
-                    Carbon::parse($activityItem->date)
+                    /*need to change Carbon in DataTime when track back to work Carbon::parse($activityItem->date) */
+                    '01/01/2021'
                 );
             }
 
@@ -463,7 +465,7 @@ class Ups implements CourrierManagementInterface
 
             foreach ($response->response->errors as $error) {
 
-                dump($error->message);
+                var_dump($error->message);
             }
         }
     }
@@ -692,12 +694,12 @@ class Ups implements CourrierManagementInterface
 
             $response = json_decode($e->getResponse()->getBody()->getContents());
 
-            dump($response);
+            var_dump($response);
 
             die;
 
             foreach ($response->response->errors as $error) {
-                dump($error->message);
+                var_dump($error->message);
             }
         }
     }
@@ -757,7 +759,7 @@ class Ups implements CourrierManagementInterface
 
             $label = $response->LabelRecoveryResponse->LabelResults->LabelImage->GraphicImage;
 
-            dump($response);
+            var_dump($response);
 
             file_put_contents($response->LabelRecoveryResponse->LabelResults->TrackingNumber . ".png", base64_decode($label));
         } catch (ClientException $e) {
@@ -765,7 +767,7 @@ class Ups implements CourrierManagementInterface
             $response = json_decode($e->getResponse()->getBody()->getContents());
 
             foreach ($response->response->errors as $error) {
-                dump($error->message);
+                var_dump($error->message);
             }
         }
     }

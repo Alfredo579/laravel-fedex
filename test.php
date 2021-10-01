@@ -9,6 +9,7 @@ use AlfredoMeschis\LaravelFedex\Requests\RateRequest;
 use AlfredoMeschis\LaravelFedex\Requests\ShippingRequest;
 use AlfredoMeschis\LaravelFedex\Requests\TrackRequest;
 use AlfredoMeschis\LaravelFedex\Ups;
+use Carbon\Carbon;
 use GuzzleHttp\Client;
 
 $config = [
@@ -181,6 +182,6 @@ gls trackNumber = "610598168"
 dhl trackNumber = 9356579890
 */
 
-$trackRequest->trackNumber = '774613744771';
+$trackRequest->trackNumber = '1ZX00F226894705880';
 
-dump($fedex->shipping($shippingRequest));
+/* dump($ups->shipping($shippingRequest)); */

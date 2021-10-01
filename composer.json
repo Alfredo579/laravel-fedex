@@ -13,8 +13,5 @@
       "name": "alfredo",
       "email": "alfredomeschis@yahoo.com"
     }
-  ],
-  "require": {
-    "nesbot/carbon": "~1.21"
-  }
+  ]
 }

@@ -9,7 +9,6 @@ use AlfredoMeschis\LaravelFedex\Requests\TrackRequest;
 use AlfredoMeschis\LaravelFedex\Responses\RateResponse;
 use AlfredoMeschis\LaravelFedex\Responses\ShippingResponse;
 use AlfredoMeschis\LaravelFedex\Responses\TrackResponse;
-use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 
@@ -129,7 +128,7 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
                     'ClientDetails' => NULL,
                     'RequestedShipment' => [
                         'DropOffType' => 'REQUEST_COURIER',
-                        'ShipTimestamp' => Carbon::today(),
+                        'ShipTimestamp' => date('c'),
                         'UnitOfMeasurement' => 'SI',
                         'Content' => 'NON_DOCUMENTS',
                         'PaymentInfo' => 'DAP',
@@ -234,8 +233,12 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
             $cashOnDelivery = [];
         }
 
+        $shippingTime = gmdate("Y-m-d\TH:i:s\G\M\T\+\\0\\0\:\\0\\0", strtotime('+3 hours'));
 
+     
+      /* dump(Carbon::now()->add("3 hours")->timezone("GMT")->format("Y-m-d\TH:i:seP")); */
 
+     
         /* '2021-09-10T12:30:47GMT+01:00' */
 
         try {
@@ -257,7 +260,7 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
                                 'UnitOfMeasurement' => 'SI',
                                 'SpecialServices' => $cashOnDelivery
                             ],
-                            'ShipTimestamp' => Carbon::now()->add("3 hours")->timezone("GMT")->format("Y-m-d\TH:i:seP"),
+                            'ShipTimestamp' => $shippingTime/*  Carbon::now()->add("3 hours")->timezone("GMT")->format("Y-m-d\TH:i:seP") */,
                             'PaymentInfo' => 'DDP',
                             'InternationalDetail' => [
                                 'Commodities' => [
@@ -312,7 +315,7 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
 
             $response = json_decode($response->getBody()->getContents());
 
-            dump($response);
+           /*  dump($response); */
 
             file_put_contents("dhl_label.pdf", base64_decode($response->ShipmentResponse->LabelImage[0]->GraphicImage));
 
@@ -325,7 +328,7 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
             return $shippingResponse;
         } catch (ClientException $e) {
 
-            dump($e);
+            var_dump($e);
         }
     }
 

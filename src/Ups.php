@@ -574,7 +574,7 @@ class Ups implements CourrierManagementInterface
                                     "Address" => [
                                         "AddressLine" => $shippingRequest->shipToAddress->addressLine,
                                         "City" => $shippingRequest->shipToAddress->city,
-                                        "StateProvinceCode" => $shippingRequest->shipToAddress->stateOrProvinceCode,
+                                        "StateProvinceCode" => $shippingRequest->shipToAddress->stateProvinceCode,
                                         "PostalCode" => $shippingRequest->shipToAddress->postalCode,
                                         "CountryCode" => $shippingRequest->shipToAddress->countryCode
                                     ]

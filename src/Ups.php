@@ -627,9 +627,6 @@ class Ups implements CourrierManagementInterface
 
             $response = json_decode($response->getBody()->getContents());
 
-            print_r($response);
-            die;
-
             $shippingResponse = new ShippingResponse;
 
             $shippingResponse->trackNumber = $response->ShipmentResponse->Response->TransactionReference->TransactionIdentifier;

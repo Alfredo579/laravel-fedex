@@ -36,6 +36,7 @@ class ShippingRequest
     public $shipperAddressStateOrProvinceCode;
     public $shipperAddressPostalCode;
     public $shipperAddressCountryCode;
+
     public $recipientPersonName;
     public $recipientCompanyName;
     public $recipientPhoneNumber;
@@ -47,6 +48,7 @@ class ShippingRequest
     public $recipientAddressStateOrProvinceCode;
     public $recipientAddressPostalCode;
     public $recipientAddressCountryCode;
+    
     public $shipFromName;
     public $shipFromAttentionName;
     public $shipFromPhoneNumber;

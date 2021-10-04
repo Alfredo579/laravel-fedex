@@ -482,9 +482,9 @@ class Ups implements CourrierManagementInterface
                     "UnitOfMeasurement" => [
                         "Code" => "CM",
                     ],
-                    "Length" => "30",
-                    "Width" => "30",
-                    "Height" => "30"
+                    "Length" => $package['lengthValue'],
+                    "Width" => $package['widthValue'],
+                    "Height" => $package['heightValue']
                 ],
                 /* "Description" => $package['upsPackageDescription'], */
                 "Packaging" => [
@@ -559,7 +559,7 @@ class Ups implements CourrierManagementInterface
                                     "Address" => [
                                         "AddressLine" => $shippingRequest->shipperAddress->addressLine,
                                         "City" => $shippingRequest->shipperAddress->city,
-                                        "StateProvinceCode" => $shippingRequest->shipperAddress->stateOrProvinceCode,
+                                        "StateProvinceCode" => $shippingRequest->shipperAddress->stateProvinceCode,
                                         "PostalCode" => $shippingRequest->shipperAddress->postalCode,
                                         "CountryCode" => $shippingRequest->shipperAddress->countryCode
                                     ]
@@ -626,6 +626,9 @@ class Ups implements CourrierManagementInterface
             );
 
             $response = json_decode($response->getBody()->getContents());
+
+            print_r($response);
+            die;
 
             $shippingResponse = new ShippingResponse;
 

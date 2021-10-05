@@ -298,7 +298,7 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
                                     'Address' => [
                                         'StreetLines' => $shippingRequest->shipToAddress->addressLine,
                                         'City' => $shippingRequest->shipToAddress->city,
-                                        'StateOrProvinceCode' => $shippingRequest->shipToAddress->stateOrProvinceCode,
+                                        'StateOrProvinceCode' => $shippingRequest->shipToAddress->stateProvinceCode,
                                         'PostalCode' => $shippingRequest->shipToAddress->postalCode,
                                         'CountryCode' => $shippingRequest->shipToAddress->countryCode,
                                     ],

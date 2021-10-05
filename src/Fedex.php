@@ -273,7 +273,7 @@ class Fedex
                     'Address' => [
                         'StreetLines' => [$shippingRequest->shipperAddressStreetLines],
                         'City' => $shippingRequest->shipperAddressCity,
-                        'StateOrProvinceCode' => $shippingRequest->shipperAddressStateOrProvinceCode,
+                        'StateOrProvinceCode' => $shippingRequest->shipperAddressStateProvinceCode,
                         'PostalCode' => $shippingRequest->shipperAddressPostalCode,
                         'CountryCode' => $shippingRequest->shipperAddressCountryCode, 
                     ]
@@ -287,7 +287,7 @@ class Fedex
                     'Address' => [
                         'StreetLines' => [$shippingRequest->recipientAddressStreetLines],
                         'City' => $shippingRequest->recipientAddressCity,
-                        'StateOrProvinceCode' => $shippingRequest->recipientAddressStateOrProvinceCode, // for Example TX
+                        'StateOrProvinceCode' => $shippingRequest->recipientAddressStateProvinceCode, // for Example TX
                         'PostalCode' => $shippingRequest->recipientAddressPostalCode,
                         'CountryCode' => $shippingRequest->recipientAddressCountryCode, // For example US
                         'Residential' => true

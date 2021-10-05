@@ -222,9 +222,6 @@ $parcel
 
         $responseArray = $courrierBase->responseToArray($response);
 
-        var_dump($responseArray);
-        die;
-
         /* dump($responseArray); */
 
         if(isset($responseArray['Parcel'][0])) {

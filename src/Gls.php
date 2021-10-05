@@ -181,7 +181,7 @@ class Gls implements CourrierManagementInterface
             $cashOnDelivery = "";
         }
 
-         echo '<pre>' . var_export($shippingRequest->cashOnDeliveryValue, true) . '</pre>';
+         echo '<pre>' . var_export($cashOnDelivery, true) . '</pre>';
         die;
 
         foreach ($shippingRequest->packages as $key => $package) {

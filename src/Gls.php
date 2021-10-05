@@ -180,7 +180,6 @@ class Gls implements CourrierManagementInterface
             $cashOnDelivery = "";
         }
 
-
         foreach ($shippingRequest->packages as $key => $package) {
 
             $weight = $package['weightValue'];
@@ -223,7 +222,7 @@ $parcel
 
         $responseArray = $courrierBase->responseToArray($response);
 
-
+        var_dump($responseArray);
 
         /* dump($responseArray); */
 

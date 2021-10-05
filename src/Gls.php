@@ -180,7 +180,7 @@ class Gls implements CourrierManagementInterface
             $cashOnDelivery = '';
         }
 
-         echo($cashOnDelivery);
+         var_dump($cashOnDelivery);
         die;
 
         foreach ($shippingRequest->packages as $key => $package) {

@@ -174,14 +174,13 @@ class Gls implements CourrierManagementInterface
 
         if (isset($shippingRequest->cashOnDeliveryValue)) {
 
-            $cashOnDelivery = "<ImportoContrassegno>".$shippingRequest->cashOnDeliveryValue."</ImportoContrassegno>
-            <ModalitaIncasso>CONT</ModalitaIncasso>";
+            $cashOnDelivery = "<ImportoContrassegno>".$shippingRequest->cashOnDeliveryValue."</ImportoContrassegno><ModalitaIncasso>CONT</ModalitaIncasso>";
             
         } else {
             $cashOnDelivery = "";
         }
 
-         echo '<pre>' . var_export($cashOnDelivery, true) . '</pre>';
+         echo($cashOnDelivery);
         die;
 
         foreach ($shippingRequest->packages as $key => $package) {

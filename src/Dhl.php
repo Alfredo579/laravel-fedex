@@ -204,7 +204,7 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
         foreach ($shippingRequest->packages as $package) {
 
             $packQuery[] = [
-                '@number' => $packageCounter,
+                '@number' => 2 /* $packageCounter */,
                 'Weight' => $package['weightValue'],
                 'Dimensions' => [
                     'Length' => $package['dimensionsLength'],
@@ -312,18 +312,27 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
                     ],
                 ]
             ]);
+            
 
             $response = json_decode($response->getBody()->getContents());
 
            /*  dump($response); */
-
-            file_put_contents("dhl_label.pdf", base64_decode($response->ShipmentResponse->LabelImage[0]->GraphicImage));
+ 
+            /* file_put_contents("dhl_label.pdf", base64_decode($response->ShipmentResponse->LabelImage[0]->GraphicImage)); */
 
             $shippingResponse = new ShippingResponse;
 
             $shippingResponse->labels = [$response->ShipmentResponse->LabelImage[0]->GraphicImage];
 
-            $shippingResponse->trackNumber = $response->ShipmentResponse->PackagesResult->PackageResult[0]->TrackingNumber;
+            $shippingResponse->trackNumber = $response->ShipmentResponse->PackagesResult->PackageResult[0]->TrackingNumber; 
+
+            $nowTimestamp = $_SERVER['REQUEST_TIME'];
+
+            $fileName = "dhlLabel-". $nowTimestamp . ".pdf";
+
+            file_put_contents( $fileName ,  base64_decode($response->ShipmentResponse->LabelImage[0]->GraphicImage));
+
+            $shippingResponse->labelPath[] = $fileName;
 
             return $shippingResponse;
         } catch (ClientException $e) {

@@ -221,20 +221,36 @@ $parcel
             $count = 1;
             foreach ($responseArray['Parcel'] as $resp) {
     
-                file_put_contents("gls_create_label_" . $count . ".pdf", base64_decode($resp['PdfLabel']));
+              /*   file_put_contents("gls_create_label_" . $count . ".pdf", base64_decode($resp['PdfLabel'])); */
     
                 $shippingResponse->trackNumber = $resp["NumeroSpedizione"];
     
                 $shippingResponse->labels = [$resp["PdfLabel"]];
+                
+                $nowTimestamp = $_SERVER['REQUEST_TIME'];
+                
+                $fileName = "glsLabel" . $count ."-". $nowTimestamp . ".pdf";
+                
+                file_put_contents( $fileName , base64_decode($resp['PdfLabel']));
+                
+                $shippingResponse->labelPath[] = $fileName;
                 $count++;
             }
             
         } else {
-            file_put_contents("gls_create_label_1.pdf", base64_decode($responseArray['Parcel']['PdfLabel']));
+           /*  file_put_contents("gls_create_label_1.pdf", base64_decode($responseArray['Parcel']['PdfLabel'])); */
     
             $shippingResponse->trackNumber = $responseArray['Parcel']["NumeroSpedizione"];
 
             $shippingResponse->labels = [$responseArray['Parcel']["PdfLabel"]];
+
+            $nowTimestamp = $_SERVER['REQUEST_TIME'];
+                
+            $fileName = "glsLabel-". $nowTimestamp . ".pdf";
+            
+            file_put_contents( $fileName , base64_decode($responseArray['Parcel']["PdfLabel"]));
+            
+            $shippingResponse->labelPath[] = $fileName;
         }
 
         return $shippingResponse;

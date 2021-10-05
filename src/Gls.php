@@ -175,7 +175,7 @@ class Gls implements CourrierManagementInterface
         foreach ($shippingRequest->packages as $key => $package) {
 
             $weight = $package['weightValue'];
-            $pesoVolume = $package['dimensionsLength'] * $package['dimensionsWidth'] * $package['dimensionsHeight'] / 5000;
+            $pesoVolume = $package['lengthValue'] * $package['widthValue'] * $package['heightValue'] / 5000;
 
             $parcel .= str_replace("\n", "", "<Parcel>
 <CodiceContrattoGls>" . $this->contractCode . "</CodiceContrattoGls> 

@@ -207,9 +207,9 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
                 '@number' => 2 /* $packageCounter */,
                 'Weight' => $package['weightValue'],
                 'Dimensions' => [
-                    'Length' => $package['dimensionsLength'],
-                    'Width' => $package['dimensionsWidth'],
-                    'Height' => $package['dimensionsHeight'],
+                    'Length' => $package['lengthValue'],
+                    'Width' => $package['widthValue'],
+                    'Height' => $package['heightValue'],
                 ],
             ];
 

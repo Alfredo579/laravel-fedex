@@ -33,7 +33,7 @@ class ShippingRequest
     public $shipperAddress;
     public $shipperAddressStreetLines;
     public $shipperAddressCity;
-    public $shipperAddressStateOrProvinceCode;
+    public $shipperAddressStateProvinceCode;
     public $shipperAddressPostalCode;
     public $shipperAddressCountryCode;
 
@@ -45,7 +45,7 @@ class ShippingRequest
     public $recipientTaxIdentificationNumber;
     public $recipientAddressStreetLines;
     public $recipientAddressCity;
-    public $recipientAddressStateOrProvinceCode;
+    public $recipientAddressStateProvinceCode;
     public $recipientAddressPostalCode;
     public $recipientAddressCountryCode;
     

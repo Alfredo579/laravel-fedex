@@ -334,6 +334,8 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
 
             $shippingResponse->labelPath[] = $fileName;
 
+            echo '<pre>' . var_export($response, true) . '</pre>';
+
             return $shippingResponse;
         } catch (ClientException $e) {
 

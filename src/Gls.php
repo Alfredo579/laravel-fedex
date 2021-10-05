@@ -172,7 +172,18 @@ class Gls implements CourrierManagementInterface
         $client = new Client();
         $parcel = '';
 
+        if (isset($shippingRequest->cashOnDeliveryValue)) {
+
+            $cashOnDelivery = "<ImportoContrassegno>$shippingRequest->cashOnDeliveryValue</ImportoContrassegno>
+            <ModalitaIncasso>CONT</ModalitaIncasso>";
+            
+        } else {
+            $cashOnDelivery = "";
+        }
+
         foreach ($shippingRequest->packages as $key => $package) {
+
+            
 
             $weight = $package['weightValue'];
             $pesoVolume = $package['lengthValue'] * $package['widthValue'] * $package['heightValue'] / 5000;
@@ -189,8 +200,7 @@ class Gls implements CourrierManagementInterface
 <GeneraPdf>4</GeneraPdf>
 <ContatoreProgressivo>001</ContatoreProgressivo>
 <PesoReale>$weight</PesoReale>
-<ImportoContrassegno>90,00</ImportoContrassegno>
-<ModalitaIncasso>CONT</ModalitaIncasso>
+".$cashOnDelivery."
 <PesoVolume>$pesoVolume</PesoVolume>
 <TipoPorto>$shippingRequest->portType</TipoPorto>
 <NoteSpedizione>$shippingRequest->note</NoteSpedizione>
@@ -208,11 +218,15 @@ $parcel
             ]
         ]);
 
+        /* echo '<pre>' . var_export($shippingRequest, true) . '</pre>';
+        die; */
         $shippingResponse = new ShippingResponse;
 
         $courrierBase = new CourrierBase([]);
 
         $responseArray = $courrierBase->responseToArray($response);
+
+
 
         /* dump($responseArray); */
 

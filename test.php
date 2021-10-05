@@ -113,6 +113,8 @@ $shippingRequest->pdfFormat = "A5";
 $shippingRequest->portType = "F";
 $shippingRequest->note = "es: T: 3475161912";
 
+$shippingRequest->cashOndelivery = 90;
+
 $shippingRequest->shipperPersonName = 'Pino';
 $shippingRequest->shipperCompanyName = 'Scalia Group';
 $shippingRequest->shipperPhoneNumber = '400-2345-3489';
@@ -185,4 +187,4 @@ dhl trackNumber = 9356579890
 
 $trackRequest->trackNumber = '774613744771';
 
-print_r($dhl->shipping($shippingRequest));
+print_r($gls->shipping($shippingRequest));

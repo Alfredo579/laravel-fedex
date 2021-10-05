@@ -181,9 +181,10 @@ class Gls implements CourrierManagementInterface
             $cashOnDelivery = "";
         }
 
-        foreach ($shippingRequest->packages as $key => $package) {
+         echo '<pre>' . var_export($shippingRequest->cashOnDeliveryValue, true) . '</pre>';
+        die;
 
-            
+        foreach ($shippingRequest->packages as $key => $package) {
 
             $weight = $package['weightValue'];
             $pesoVolume = $package['lengthValue'] * $package['widthValue'] * $package['heightValue'] / 5000;
@@ -218,8 +219,7 @@ $parcel
             ]
         ]);
 
-        /* echo '<pre>' . var_export($shippingRequest, true) . '</pre>';
-        die; */
+       
         $shippingResponse = new ShippingResponse;
 
         $courrierBase = new CourrierBase([]);

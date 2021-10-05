@@ -184,7 +184,3 @@ dhl trackNumber = 9356579890
 */
 
 $trackRequest->trackNumber = '1ZX00F226894705880';
-
-$date =  $_SERVER['REQUEST_TIME'];
-
-print_r($date);

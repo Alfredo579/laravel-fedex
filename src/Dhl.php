@@ -322,6 +322,8 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
 
             $shippingResponse = new ShippingResponse;
 
+            echo '<pre>' . var_export($response, true) . '</pre>';
+            die;
             $shippingResponse->labels = [$response->ShipmentResponse->LabelImage[0]->GraphicImage];
 
             $shippingResponse->trackNumber = $response->ShipmentResponse->PackagesResult->PackageResult[0]->TrackingNumber; 
@@ -334,7 +336,6 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
 
             $shippingResponse->labelPath[] = $fileName;
 
-            echo '<pre>' . var_export($response, true) . '</pre>';
 
             return $shippingResponse;
         } catch (ClientException $e) {

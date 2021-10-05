@@ -243,7 +243,7 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
 
         try {
 
-            $response = $client->post($url, [
+            $originalRequest = [
                 "headers" => [
                     "Authorization" => $this->encodeAuth($this->username, $this->password)
                 ],
@@ -311,7 +311,11 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
                         ],
                     ],
                 ]
-            ]);
+            ];
+
+            echo '<pre>' . var_export($originalRequest, true) . '</pre>';
+            die;
+            $response = $client->post($url, $originalRequest);
             
 
             $response = json_decode($response->getBody()->getContents());
@@ -322,8 +326,6 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
 
             $shippingResponse = new ShippingResponse;
 
-            echo '<pre>' . var_export($response, true) . '</pre>';
-            die;
             $shippingResponse->labels = [$response->ShipmentResponse->LabelImage[0]->GraphicImage];
 
             $shippingResponse->trackNumber = $response->ShipmentResponse->PackagesResult->PackageResult[0]->TrackingNumber; 

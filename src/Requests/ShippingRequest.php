@@ -71,6 +71,8 @@ class ShippingRequest
     public $dimensionsHeight;
     public $dimensionsUnits;
 
+    public $cashOnDeliveryValue;
+
     public $packages = [];
 
     public function __construct() 

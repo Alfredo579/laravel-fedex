@@ -13,4 +13,6 @@ class ShippingResponse {
     public $detailPrice;
 
     public $totalPrice;
+
+    public $labelPath = [];
 }

@@ -20,7 +20,8 @@ $config = [
         "accountNumber" => "V5854W",
         "locale" => "it_IT",
         "shipperNumber" => "V5854W",
-        "serviceType" => "65"
+        "serviceType" => "65",
+        "imageType" => "PNG",
     ],
     "Fedex" => [
         "accountNumber" => "801405622",
@@ -96,7 +97,7 @@ $shippingRequest->fedexServiceType = 'PRIORITY_OVERNIGHT';// valid values STANDA
 $shippingRequest->fedexPackagingType = 'YOUR_PACKAGING'; // valid values FEDEX_BOX, FEDEX_PAK, FEDEX_TUBE, YOUR_PACKAGING, ...
 
 /* ups */
-$shippingRequest->upsServiceCode = "65";
+$shippingRequest->serviceType = "65";
 /* $shippingRequest->upsServiceDescription = "Expedited"; */
 $shippingRequest->upsPackageDescription = "International Goods";
 /* $shippingRequest->upsShipmentRequestDescription = "descrizione prodotto"; */
@@ -184,4 +185,6 @@ dhl trackNumber = 9356579890
 
 $trackRequest->trackNumber = '1ZX00F226894705880';
 
-/* dump($ups->shipping($shippingRequest)); */
+$date =  $_SERVER['REQUEST_TIME'];
+
+print_r($date);

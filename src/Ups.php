@@ -482,9 +482,9 @@ class Ups implements CourrierManagementInterface
                     "UnitOfMeasurement" => [
                         "Code" => "CM",
                     ],
-                    "Length" => $package['lengthValue'],
-                    "Width" => $package['widthValue'],
-                    "Height" => $package['heightValue']
+                    "Length" => $package['lengthValue'] ,
+                    "Width" => $package['widthValue'] ,
+                    "Height" =>  $package['heightValue']
                 ],
                 /* "Description" => $package['upsPackageDescription'], */
                 "Packaging" => [
@@ -665,15 +665,12 @@ class Ups implements CourrierManagementInterface
             $count = 1;
             if (is_array($response->ShipmentResponse->ShipmentResults->PackageResults)) {
 
-
                 foreach ($response->ShipmentResponse->ShipmentResults->PackageResults as $pack) {
 
                     $shippingResponse->labels[] = [
                         "format" => $pack->ShippingLabel->ImageFormat->Code,
                         "image" => $pack->ShippingLabel->GraphicImage
                     ];
-
-                    file_put_contents("upsLabel" . $count . ".png", base64_decode($pack->ShippingLabel->GraphicImage));
 
                     $count++;
                 }
@@ -684,7 +681,13 @@ class Ups implements CourrierManagementInterface
                     "image" => $response->ShipmentResponse->ShipmentResults->PackageResults->ShippingLabel->GraphicImage
                 ];
 
-                file_put_contents("upsLabel" . $count . ".png", base64_decode($response->ShipmentResponse->ShipmentResults->PackageResults->ShippingLabel->GraphicImage));
+                $nowTimestamp = $_SERVER['REQUEST_TIME'];
+
+                $fileName = "upsLabel" . $count ."-". $nowTimestamp . ".png";
+
+                file_put_contents( $fileName , base64_decode($response->ShipmentResponse->ShipmentResults->PackageResults->ShippingLabel->GraphicImage));
+
+                $shippingResponse->labelPath[] = $fileName;
 
                 $count++;
             }

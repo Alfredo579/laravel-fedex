@@ -313,9 +313,9 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
                 ]
             ];
 
-            echo '<pre>' . var_export($originalRequest, true) . '</pre>';
-            die;
             $response = $client->post($url, $originalRequest);
+            echo '<pre>' . var_export($response, true) . '</pre>';
+            die;
             
 
             $response = json_decode($response->getBody()->getContents());

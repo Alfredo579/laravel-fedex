@@ -185,6 +185,6 @@ gls trackNumber = "610598168"
 dhl trackNumber = 9356579890
 */
 
-$trackRequest->trackNumber = '774613744771';
+$trackRequest->trackNumber = "1ZV5854W6815569400";
 
-print_r($gls->shipping($shippingRequest));
+print_r($ups->track($trackRequest));

@@ -441,8 +441,6 @@ class Ups implements CourrierManagementInterface
             ]);
 
             $resp = json_decode($response->getBody()->getContents());
-            var_dump($resp);
-            die;
 
             $trackResponse = new TrackResponse;
 

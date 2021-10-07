@@ -101,7 +101,6 @@ class Gls implements CourrierManagementInterface
 
         $count = 0;
 
-        
         foreach ($events['Data'] as $eventData) {
 
             $trackResponse->setHistory(
@@ -221,8 +220,6 @@ $parcel
         $courrierBase = new CourrierBase([]);
 
         $responseArray = $courrierBase->responseToArray($response);
-
-        /* dump($responseArray); */
 
         if(isset($responseArray['Parcel'][0])) {
 

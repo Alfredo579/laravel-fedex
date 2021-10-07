@@ -8,6 +8,7 @@ use AlfredoMeschis\LaravelFedex\Requests\TrackRequest;
 use AlfredoMeschis\LaravelFedex\Responses\RateResponse;
 use AlfredoMeschis\LaravelFedex\Responses\ShippingResponse;
 use AlfredoMeschis\LaravelFedex\Responses\TrackResponse;
+use DateTime;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 
@@ -444,13 +445,15 @@ class Ups implements CourrierManagementInterface
 
             $trackResponse = new TrackResponse;
 
+           
+
             foreach ($resp->trackResponse->shipment[0]->package[0]->activity as $activityItem) {
 
                 $trackResponse->setHistory(
                     $activityItem->location->address->city,
                     $activityItem->status->description,
                     /*need to change Carbon in DataTime when track back to work Carbon::parse($activityItem->date) */
-                    '01/01/2021'
+                    DateTime::createFromFormat('YmdHis', $activityItem->date.$activityItem->time)->format('d/m/Y-H:i')
                 );
             }
 

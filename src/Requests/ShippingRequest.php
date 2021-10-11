@@ -74,6 +74,7 @@ class ShippingRequest
     public $cashOnDeliveryValue;
 
     public $packages = [];
+    public $labelSaveLocation;
 
     public function __construct() 
     {

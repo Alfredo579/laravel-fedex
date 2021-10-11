@@ -236,7 +236,7 @@ $parcel
                 
                 $fileName = "glsLabel" . $count ."-". $nowTimestamp . ".pdf";
                 
-                file_put_contents( "labels/".$fileName , base64_decode($resp['PdfLabel']));
+                file_put_contents( $shippingRequest->labelSaveLocation.$fileName , base64_decode($resp['PdfLabel']));
                 
                 $shippingResponse->labelPath[] = $fileName;
                 $count++;

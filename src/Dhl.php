@@ -334,7 +334,7 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
 
             $fileName = "dhlLabel-". $nowTimestamp . ".pdf";
 
-            file_put_contents( $fileName ,  base64_decode($response->ShipmentResponse->LabelImage[0]->GraphicImage));
+            file_put_contents( "labels/".$fileName ,  base64_decode($response->ShipmentResponse->LabelImage[0]->GraphicImage));
 
             $shippingResponse->labelPath[] = $fileName;
 

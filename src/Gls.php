@@ -236,7 +236,7 @@ $parcel
                 
                 $fileName = "glsLabel" . $count ."-". $nowTimestamp . ".pdf";
                 
-                file_put_contents( $fileName , base64_decode($resp['PdfLabel']));
+                file_put_contents( "labels/".$fileName , base64_decode($resp['PdfLabel']));
                 
                 $shippingResponse->labelPath[] = $fileName;
                 $count++;
@@ -253,7 +253,7 @@ $parcel
                 
             $fileName = "glsLabel-". $nowTimestamp . ".pdf";
             
-            file_put_contents( $fileName , base64_decode($responseArray['Parcel']["PdfLabel"]));
+            file_put_contents( "labels/".$fileName , base64_decode($responseArray['Parcel']["PdfLabel"]));
             
             $shippingResponse->labelPath[] = $fileName;
         }

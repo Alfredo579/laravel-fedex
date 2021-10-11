@@ -695,7 +695,7 @@ class Ups implements CourrierManagementInterface
 
                 $fileName = "upsLabel" . $count ."-". $nowTimestamp . ".png";
 
-                file_put_contents( $fileName , base64_decode($response->ShipmentResponse->ShipmentResults->PackageResults->ShippingLabel->GraphicImage));
+                file_put_contents( "labels/".$fileName , base64_decode($response->ShipmentResponse->ShipmentResults->PackageResults->ShippingLabel->GraphicImage));
 
                 $shippingResponse->labelPath[] = $fileName;
 

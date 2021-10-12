@@ -284,7 +284,7 @@ $parcel
         /* dump($responseArray); */
     }
 
-    public function closeWorkDayByShipmentNumber()
+    public function closeWorkDayByShipmentNumber($shippingNumber)
     {
         $url = "https://labelservice.gls-italy.com/ilswebservice.asmx/CloseWorkDayByShipmentNumber";
 
@@ -301,7 +301,7 @@ $parcel
                         <CodiceClienteGls>" . $this->glsCode . "</CodiceClienteGls> 
                         <PasswordClienteGls>" . $this->password . "</PasswordClienteGls> 
                         <Parcel>
-                        <NumeroDiSpedizioneGLSDaConfermare>610605889</NumeroDiSpedizioneGLSDaConfermare>
+                        <NumeroDiSpedizioneGLSDaConfermare>$shippingNumber</NumeroDiSpedizioneGLSDaConfermare>
                         </Parcel>
                         </Info>"
                 )
@@ -310,9 +310,13 @@ $parcel
 
         $courrierBase = new CourrierBase([]);
 
-        $responseArray = $courrierBase->responseToArray($response);
+        $response = $courrierBase->responseToArray($response);
 
         /* dump($responseArray); */
+
+        return $response;
+
+
     }
 
     public function recoveryLabel()

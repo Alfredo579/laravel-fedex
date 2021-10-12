@@ -12,10 +12,6 @@ use AlfredoMeschis\LaravelFedex\Responses\TrackResponse;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 
-/* TODO: 
-    addressValidation function,
-*/
-
 class Dhl extends CourrierBase implements CourrierManagementInterface
 {
     private $username;
@@ -59,13 +55,11 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
 
     public function getServicesTypes()
     {
-
         return ["serviceType" => $this->serviceTypes, "dropOffType" => $this->dropOffTypes];
     }
 
     public function getServices()
     {
-
         $url = "https://express.api.dhl.com/mydhlapi/test/products";
 
         $client = new Client();
@@ -92,8 +86,6 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
                 "nextBusinessDay" => "false"
             ]
         ]);
-
-        /*  dump(json_decode($response->getBody()->getContents())); */
     }
 
     public function rate(RateRequest $rateRequest)
@@ -133,7 +125,7 @@ class Dhl extends CourrierBase implements CourrierManagementInterface
                         'Content' => 'NON_DOCUMENTS',
                         'PaymentInfo' => 'DAP',
                         'NextBusinessDay' => 'Y',
-                        'Account' => 106067134,
+                        'Account' => $this->account,
                         'Ship' => [
                             'Shipper' => [
                                 'City' => $rateRequest->shipperAddress->city,
